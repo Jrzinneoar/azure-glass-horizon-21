@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -84,11 +85,46 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-glow': {
+					'0%, 100%': { 
+						opacity: '0.4',
+						transform: 'scale(1)'
+					},
+					'50%': { 
+						opacity: '0.8',
+						transform: 'scale(1.05)'
+					}
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'brush-move-1': {
+					'0%': { transform: 'translate(0, 0) rotate(0deg)' },
+					'33%': { transform: 'translate(30px, 20px) rotate(5deg)' },
+					'66%': { transform: 'translate(-20px, 40px) rotate(-5deg)' },
+					'100%': { transform: 'translate(0, 0) rotate(0deg)' }
+				},
+				'brush-move-2': {
+					'0%': { transform: 'translate(0, 0) rotate(0deg)' },
+					'33%': { transform: 'translate(-40px, -20px) rotate(-8deg)' },
+					'66%': { transform: 'translate(20px, -30px) rotate(8deg)' },
+					'100%': { transform: 'translate(0, 0) rotate(0deg)' }
+				},
+				'shimmer': {
+					'0%': { backgroundPosition: '-200% 0' },
+					'100%': { backgroundPosition: '200% 0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
+				'float': 'float 6s ease-in-out infinite',
+				'brush-move-1': 'brush-move-1 20s ease-in-out infinite',
+				'brush-move-2': 'brush-move-2 25s ease-in-out infinite',
+				'shimmer': 'shimmer 3s linear infinite'
 			}
 		}
 	},
