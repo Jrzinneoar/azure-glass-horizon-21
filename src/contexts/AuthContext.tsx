@@ -18,7 +18,7 @@ interface AuthContextValue {
   updateVMAccessPeriod: (vmId: string, userId: string, days: number) => void;
   getOwnerName: (ownerId?: string) => string | undefined;
   // Adding this for AuthCallback.tsx
-  loginWithDiscordCode?: (code: string) => Promise<void>;
+  loginWithDiscordCode: (code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -54,23 +54,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading
   });
   
-  // Mock function for loginWithDiscordCode
+  // Implement loginWithDiscordCode function
   const loginWithDiscordCode = async (code: string) => {
     try {
       setIsLoading(true);
       console.log("Authenticating with Discord code:", code);
       
       // In a real app, you would call your backend API here
-      // For now, simulate a successful login with the founder user
+      // For now, simulate a successful login with a random user (not just founder)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find the founder user for mock login
-      const founderUser = users.find(u => u.role === 'founder');
-      if (founderUser) {
+      // Randomly select a user based on the code hash to simulate different users logging in
+      const codeHash = code.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const userIndex = codeHash % users.length;
+      const selectedUser = users[userIndex];
+      
+      if (selectedUser) {
         setUser({
-          ...founderUser,
-          avatarUrl: founderUser.avatarUrl || "https://github.com/shadcn.png"
+          ...selectedUser,
+          avatarUrl: selectedUser.avatarUrl || "https://github.com/shadcn.png"
         });
+        console.log(`Logged in as ${selectedUser.username} (${selectedUser.role})`);
       }
     } catch (error) {
       console.error("Error logging in with Discord:", error);

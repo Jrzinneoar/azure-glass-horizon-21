@@ -10,9 +10,11 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -21,12 +23,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { User as UserType } from '@/contexts/types/auth.types';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface VirtualMachineProps {
   id: string;
@@ -37,7 +43,6 @@ interface VirtualMachineProps {
   location: string;
   ownerId?: string;
   ownerName?: string;
-  onAssign?: (vmId: string, date: Date) => void;
 }
 
 const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
@@ -49,12 +54,15 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
   location,
   ownerId,
   ownerName,
-  onAssign
 }) => {
   const [status, setStatus] = useState(initialStatus);
   const [isLoading, setIsLoading] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const { users, assignVMToUser } = useAuth();
   
   const handlePowerAction = async () => {
     setIsLoading(true);
@@ -70,10 +78,13 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
   };
 
   const handleAssign = () => {
-    if (selectedDate && onAssign) {
-      onAssign(id, selectedDate);
+    if (selectedDate && selectedUserId) {
+      const days = Math.ceil((selectedDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      assignVMToUser(id, selectedUserId, days > 0 ? days : 1);
       setAssignDialogOpen(false);
       toast.success(`VM ${name} has been assigned until ${format(selectedDate, 'PPP')}`);
+    } else {
+      toast.error("Por favor, selecione um usuário e uma data");
     }
   };
 
@@ -86,6 +97,12 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
       default: return '';
     }
   };
+  
+  // Filter users based on search query
+  const filteredUsers = users.filter(user => 
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
   
   return (
     <Card className="glass-morphism overflow-hidden group relative border-white/10 hover:border-white/20 transition-all duration-300">
@@ -158,9 +175,42 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
           <DialogContent className="glass-morphism">
             <DialogHeader>
               <DialogTitle>Assign {name} to a User</DialogTitle>
+              <DialogDescription>
+                Select a user and expiration date for VM access
+              </DialogDescription>
             </DialogHeader>
-            <div className="py-4 flex flex-col items-center">
-              <div className="mb-4">
+            
+            <div className="py-4 flex flex-col space-y-4">
+              <div>
+                <label className="text-sm mb-2 block">Search user:</label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm mb-2 block">Select user:</label>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.username} ({user.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <label className="text-sm mb-2 block">Select access expiration date:</label>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -188,8 +238,11 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
                 </Popover>
               </div>
             </div>
+
             <DialogFooter>
-              <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
               <Button onClick={handleAssign}>Assign</Button>
             </DialogFooter>
           </DialogContent>

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { User } from '@/contexts/types/auth.types';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Calendar } from 'lucide-react';
+import { Calendar as CalendarIcon, Calendar, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
 
@@ -51,9 +52,9 @@ interface UserVMAccessProps {
 const UserVMAccess: React.FC<UserVMAccessProps> = ({ user }) => {
   const { virtualMachines, assignVMToUser, removeVMFromUser, updateVMAccessPeriod } = useAuth();
   const [selectedVM, setSelectedVM] = useState('');
-  const [durationDays, setDurationDays] = useState('30');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleAssignVM = () => {
     if (!selectedVM) {
@@ -92,6 +93,12 @@ const UserVMAccess: React.FC<UserVMAccessProps> = ({ user }) => {
   // Get VMs available for assignment (exclude already assigned ones)
   const assignedVMIds = userVMAccess.map(access => access.vmId);
   const availableVMs = virtualMachines.filter(vm => !assignedVMIds.includes(vm.id));
+  
+  // Filter VMs by search query
+  const filteredAvailableVMs = availableVMs.filter(vm => 
+    vm.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    vm.ip.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-4 mt-4">
@@ -115,14 +122,28 @@ const UserVMAccess: React.FC<UserVMAccessProps> = ({ user }) => {
             
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
+                <label htmlFor="vm-search">Buscar VM</label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="vm-search"
+                    placeholder="Buscar por nome ou IP..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
                 <label htmlFor="vm">Máquina Virtual</label>
                 <Select value={selectedVM} onValueChange={setSelectedVM}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a VM" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableVMs.map(vm => (
-                      <SelectItem key={vm.id} value={vm.id}>{vm.name}</SelectItem>
+                    {filteredAvailableVMs.map(vm => (
+                      <SelectItem key={vm.id} value={vm.id}>{vm.name} ({vm.ip})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

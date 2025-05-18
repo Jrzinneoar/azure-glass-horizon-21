@@ -6,9 +6,9 @@ interface AuthActionsProps {
   user: User | null;
   setUser: (user: User | null) => void;
   users: User[];
-  setUsers: (users: User[]) => void;
+  setUsers: (users: User[] | ((prevUsers: User[]) => User[])) => void;
   virtualMachines: VirtualMachine[];
-  setVirtualMachines: (vms: VirtualMachine[]) => void;
+  setVirtualMachines: (vms: VirtualMachine[] | ((prevVMs: VirtualMachine[]) => VirtualMachine[])) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
 

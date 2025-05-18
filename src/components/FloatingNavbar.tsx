@@ -11,6 +11,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import UserRoleBadge from './users/UserRoleBadge';
 
 const FloatingNavbar = () => {
   const { user, logout } = useAuth();
@@ -26,8 +27,8 @@ const FloatingNavbar = () => {
                           location.pathname === '/profile';
   
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-auto">
-      <div className="glass-morphism rounded-xl py-3 px-8 flex items-center gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-xl">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-auto px-2 sm:px-0 max-w-[95%] sm:max-w-[85%]">
+      <div className="glass-morphism rounded-xl py-3 px-4 sm:px-8 flex items-center gap-3 sm:gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-xl">
         {/* Logo */}
         <div className="hidden md:block text-xl font-bold text-gradient pr-4 border-r border-white/10">
           Monitor Azure
@@ -36,13 +37,13 @@ const FloatingNavbar = () => {
         
         {/* Navigation links - only show if logged in */}
         {user && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Link to="/dashboard">
               <Button 
                 variant={isActive('/dashboard') ? "secondary" : "ghost"} 
                 size="sm"
                 className={cn(
-                  "button-glow flex gap-2 items-center rounded-full px-4",
+                  "button-glow flex gap-1 sm:gap-2 items-center rounded-full px-2 sm:px-4",
                   isActive('/dashboard') ? "bg-primary/20" : ""
                 )}
               >
@@ -58,7 +59,7 @@ const FloatingNavbar = () => {
                   variant={isActive('/users') ? "secondary" : "ghost"} 
                   size="sm" 
                   className={cn(
-                    "button-glow flex gap-2 items-center rounded-full px-4",
+                    "button-glow flex gap-1 sm:gap-2 items-center rounded-full px-2 sm:px-4",
                     isActive('/users') ? "bg-primary/20" : ""
                   )}
                 >
@@ -74,7 +75,7 @@ const FloatingNavbar = () => {
                 variant={isActive('/profile') ? "secondary" : "ghost"} 
                 size="sm" 
                 className={cn(
-                  "button-glow flex gap-2 items-center rounded-full px-4",
+                  "button-glow flex gap-1 sm:gap-2 items-center rounded-full px-2 sm:px-4",
                   isActive('/profile') ? "bg-primary/20" : ""
                 )}
               >
@@ -89,16 +90,16 @@ const FloatingNavbar = () => {
         <div className="h-8 w-px bg-white/10"></div>
         
         {/* User menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <>
               <Avatar className="h-8 w-8 border border-white/20">
                 <AvatarImage src={user.avatarUrl} alt={user.username} />
                 <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
-              <div className="hidden md:block text-sm font-medium truncate max-w-[100px]">{user.username}</div>
-              <div className="hidden md:flex items-center justify-center text-xs bg-primary/20 px-2 py-0.5 rounded-full">
-                {user.role === 'founder' ? 'Fundador' : user.role === 'admin' ? 'Admin' : 'Cliente'}
+              <div className="hidden sm:block text-sm font-medium truncate max-w-[100px]">{user.username}</div>
+              <div className="hidden sm:block">
+                <UserRoleBadge role={user.role} />
               </div>
               <Button 
                 variant="ghost" 
