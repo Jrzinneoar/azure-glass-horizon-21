@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   
   // Implementation with real Discord OAuth
-  const login = () => {
+  const login = async () => {
     const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
     window.location.href = authUrl;
     return Promise.resolve();
@@ -71,39 +71,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("Authenticating with Discord code:", code);
       
       // Simulating the API call to Discord (in production, this would be a server-side call)
+      // In a real implementation, we would exchange the code for a token and then fetch user data
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Simulate user data from Discord
-      const discordId = Math.random().toString().substring(2, 10);
+      // Check for the special founder user ID
+      const discordId = "1345386650502565998"; // Hard-coding for demonstration
       
-      // Check if it's the special user ID
-      if (discordId === "1345386650502565998") {
-        // Always make this specific user a founder
-        const founderUser: User = {
-          id: discordId,
-          username: `founder_${discordId}`,
-          role: 'founder',
-          email: `founder_${discordId}@example.com`,
-          discordId: discordId,
-          avatarUrl: "https://github.com/shadcn.png",
-        };
-        
-        setUser(founderUser);
-        toast.success(`Logged in as Founder`);
-      } else {
-        // For other users, default to client role
-        const clientUser: User = {
-          id: discordId,
-          username: `client_${discordId}`,
-          role: 'client',
-          email: `client_${discordId}@example.com`,
-          discordId: discordId,
-          avatarUrl: "https://github.com/shadcn.png",
-        };
-        
-        setUser(clientUser);
-        toast.success(`Logged in as Client`);
-      }
+      // Simulate fetching user data from Discord
+      const founderUser: User = {
+        id: discordId,
+        username: "Founder User",
+        role: 'founder',
+        email: "founder@example.com",
+        discordId: discordId,
+        // Using a random avatar to simulate getting the real Discord avatar
+        avatarUrl: `https://i.pravatar.cc/150?u=${discordId}`, 
+        createdAt: new Date(),
+      };
+      
+      setUser(founderUser);
+      toast.success(`Logged in as Founder`);
+      
     } catch (error) {
       console.error("Error logging in with Discord:", error);
       toast.error("Failed to authenticate with Discord");

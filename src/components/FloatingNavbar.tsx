@@ -46,13 +46,13 @@ const FloatingNavbar = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 px-2 sm:px-0 w-auto max-w-[95%] mx-auto"
+      className="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 px-2 sm:px-0 w-[95%] sm:max-w-2xl mx-auto"
     >
       <motion.div 
         className={cn(
-          "glass-morphism rounded-2xl py-3 px-4 sm:px-6 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-xl transition-all duration-300",
+          "glass-morphism rounded-2xl py-3 px-4 sm:px-6 flex items-center justify-between gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-xl transition-all duration-300",
           hovered ? "shadow-[0_8px_40px_rgba(149,128,255,0.5)] border-white/40" : "",
-          expanded ? "w-auto" : "w-auto sm:w-min"
+          expanded ? "w-full" : "w-auto"
         )}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -71,7 +71,7 @@ const FloatingNavbar = () => {
         {/* Logo */}
         <motion.div 
           className={cn(
-            "hidden md:flex text-xl font-bold text-gradient pr-4 border-r border-white/10 transition-all",
+            "md:flex text-xl font-bold text-gradient pr-4 border-r border-white/10 transition-all",
             expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden pr-0 border-none"
           )}
           animate={{ opacity: expanded ? 1 : 0, width: expanded ? 'auto' : 0 }}
@@ -80,17 +80,10 @@ const FloatingNavbar = () => {
           Monitor Azure
         </motion.div>
         
-        <div className={cn(
-          "md:hidden text-xl font-bold text-gradient flex items-center justify-center relative transition-all overflow-hidden",
-          expanded ? "w-auto opacity-100" : "w-0 opacity-0"
-        )}>
-          {expanded ? "MA" : ""}
-        </div>
-        
         {/* Navigation links - only show if logged in */}
         {user && (
           <div className={cn(
-            "flex items-center gap-1 sm:gap-2 transition-all overflow-hidden",
+            "flex items-center justify-center gap-1 sm:gap-2 transition-all overflow-hidden flex-grow",
             expanded ? "w-auto opacity-100" : "w-0 opacity-0 md:w-auto md:opacity-100"
           )}>
             <Link to="/dashboard">
@@ -107,7 +100,7 @@ const FloatingNavbar = () => {
                   )}
                 >
                   <Monitor size={16} />
-                  {expanded && <span className="sm:inline hidden">VMs</span>}
+                  {expanded && <span>VMs</span>}
                 </Button>
               </motion.div>
             </Link>
@@ -128,7 +121,7 @@ const FloatingNavbar = () => {
                     )}
                   >
                     <Users size={16} />
-                    {expanded && <span className="sm:inline hidden">Usuários</span>}
+                    {expanded && <span>Usuários</span>}
                   </Button>
                 </motion.div>
               </Link>
@@ -149,20 +142,12 @@ const FloatingNavbar = () => {
                   )}
                 >
                   <User size={16} />
-                  {expanded && <span className="sm:inline hidden">Perfil</span>}
+                  {expanded && <span>Perfil</span>}
                 </Button>
               </motion.div>
             </Link>
           </div>
         )}
-        
-        {/* Divider */}
-        <motion.div 
-          className={cn(
-            "h-8 w-px bg-white/10 transition-all",
-            expanded ? "opacity-100" : "opacity-0 hidden md:block"
-          )}
-        />
         
         {/* User menu */}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -180,7 +165,6 @@ const FloatingNavbar = () => {
               {expanded && (
                 <div className="hidden sm:block text-sm font-medium truncate max-w-[100px]">{user.username}</div>
               )}
-              {/* Removed role badge display */}
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   variant="ghost" 
