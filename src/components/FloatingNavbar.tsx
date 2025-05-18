@@ -19,37 +19,44 @@ const FloatingNavbar = () => {
     return location.pathname === path;
   };
   
+  // Determine if we're on a dashboard page to adjust navbar position
+  const isDashboardPage = location.pathname === '/dashboard' || 
+                          location.pathname === '/users' || 
+                          location.pathname === '/profile';
+  
+  const navbarPosition = isDashboardPage ? 'navbar-float-bottom' : 'navbar-float';
+  
   return (
-    <div className="navbar-float flex flex-col items-center justify-center">
+    <div className={`${navbarPosition} flex flex-col items-center justify-center`}>
       {/* Logo */}
-      <div className="flex items-center justify-center w-full">
-        <div className="text-xl font-bold text-gradient text-center">Azure Monitor</div>
+      <div className="flex items-center justify-center w-full mb-2">
+        <div className="text-xl font-bold text-gradient text-center">Monitor Azure</div>
       </div>
       
       {/* Navigation links - only show if logged in */}
       {user && (
-        <div className="flex items-center justify-center gap-2 mt-2">
+        <div className="flex items-center justify-center gap-2">
           <Link to="/dashboard">
             <Button 
               variant={isActive('/dashboard') ? "secondary" : "ghost"} 
               size="sm"
-              className="button-glow flex gap-2 items-center"
+              className="button-glow flex gap-2 items-center rounded-full"
             >
               <Monitor size={16} />
               <span className="sm:inline hidden">VMs</span>
             </Button>
           </Link>
           
-          {/* Admin users and founders can see users */}
+          {/* Admins and founders can see users */}
           {(user.role === 'admin' || user.role === 'founder') && (
             <Link to="/users">
               <Button 
                 variant={isActive('/users') ? "secondary" : "ghost"} 
                 size="sm" 
-                className="button-glow flex gap-2 items-center"
+                className="button-glow flex gap-2 items-center rounded-full"
               >
                 <Users size={16} />
-                <span className="sm:inline hidden">Users</span>
+                <span className="sm:inline hidden">Usuários</span>
               </Button>
             </Link>
           )}
@@ -59,10 +66,10 @@ const FloatingNavbar = () => {
             <Button 
               variant={isActive('/profile') ? "secondary" : "ghost"} 
               size="sm" 
-              className="button-glow flex gap-2 items-center"
+              className="button-glow flex gap-2 items-center rounded-full"
             >
               <User size={16} />
-              <span className="sm:inline hidden">Profile</span>
+              <span className="sm:inline hidden">Perfil</span>
             </Button>
           </Link>
         </div>
@@ -78,20 +85,20 @@ const FloatingNavbar = () => {
             </Avatar>
             <div className="hidden md:block text-sm font-medium truncate max-w-[100px] text-center">{user.username}</div>
             <div className="hidden md:block text-xs bg-secondary px-2 py-0.5 rounded-full text-center">
-              {user.role}
+              {user.role === 'founder' ? 'Fundador' : user.role === 'admin' ? 'Admin' : 'Cliente'}
             </div>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="button-glow text-destructive" 
+              className="button-glow text-destructive rounded-full" 
               onClick={logout}
             >
               <LogOut size={16} />
             </Button>
           </>
         ) : (
-          <Button variant="default" size="sm" className="button-glow" onClick={() => window.location.href = '/'}>
-            Login with Discord
+          <Button variant="default" size="sm" className="button-glow rounded-full" onClick={() => window.location.href = '/'}>
+            Entrar com Discord
           </Button>
         )}
       </div>

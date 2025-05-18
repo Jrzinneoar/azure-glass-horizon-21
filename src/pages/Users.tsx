@@ -38,14 +38,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
-// Format date for display
+// Formatar data para exibição
 const formatDate = (isoDate: string) => {
   const date = new Date(isoDate);
-  return date.toLocaleString();
+  return date.toLocaleString('pt-BR');
 };
 
-// Component to display and manage a user's VM access
+// Componente para exibir e gerenciar o acesso VM de um usuário
 const UserVMAccess = ({ user }: { user: UserType }) => {
   const { virtualMachines, assignVMToUser, removeVMFromUser, updateVMAccessPeriod } = useAuth();
   const [selectedVM, setSelectedVM] = useState('');
@@ -54,7 +55,7 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
 
   const handleAssignVM = () => {
     if (!selectedVM || !durationDays) {
-      toast.error('Please select a VM and duration');
+      toast.error('Por favor, selecione uma VM e duração');
       return;
     }
 
@@ -62,53 +63,56 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
     setDialogOpen(false);
     setSelectedVM('');
     setDurationDays('30');
+    toast.success('VM atribuída com sucesso');
   };
 
   const handleRemoveAccess = (vmId: string) => {
     removeVMFromUser(vmId, user.id);
+    toast.success('Acesso removido com sucesso');
   };
 
   const handleUpdateAccess = (vmId: string, days: string) => {
     if (!days || parseInt(days) <= 0) {
-      toast.error('Please enter a valid number of days');
+      toast.error('Por favor, insira um número válido de dias');
       return;
     }
 
     updateVMAccessPeriod(vmId, user.id, parseInt(days));
+    toast.success('Período de acesso atualizado');
   };
 
-  // Get VMs the user has access to
+  // Obter VMs que o usuário tem acesso
   const userVMAccess = user.vmAccess || [];
   
-  // Get available VMs for assignment (exclude already assigned ones)
+  // Obter VMs disponíveis para atribuição (excluir as já atribuídas)
   const assignedVMIds = userVMAccess.map(access => access.vmId);
   const availableVMs = virtualMachines.filter(vm => !assignedVMIds.includes(vm.id));
 
   return (
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-md font-semibold">Virtual Machine Access</h3>
+        <h3 className="text-md font-semibold">Acesso às Máquinas Virtuais</h3>
         
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="default" disabled={availableVMs.length === 0}>
-              Assign VM
+              Atribuir VM
             </Button>
           </DialogTrigger>
           <DialogContent className="glass-morphism">
             <DialogHeader>
-              <DialogTitle>Assign VM to {user.username}</DialogTitle>
+              <DialogTitle>Atribuir VM para {user.username}</DialogTitle>
               <DialogDescription>
-                Select a virtual machine and access duration
+                Selecione uma máquina virtual e a duração do acesso
               </DialogDescription>
             </DialogHeader>
             
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <label htmlFor="vm">Virtual Machine</label>
+                <label htmlFor="vm">Máquina Virtual</label>
                 <Select value={selectedVM} onValueChange={setSelectedVM}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select VM" />
+                    <SelectValue placeholder="Selecione a VM" />
                   </SelectTrigger>
                   <SelectContent>
                     {availableVMs.map(vm => (
@@ -119,7 +123,7 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
               </div>
               
               <div className="grid gap-2">
-                <label htmlFor="duration">Access Duration (days)</label>
+                <label htmlFor="duration">Duração do Acesso (dias)</label>
                 <Input
                   id="duration"
                   type="number"
@@ -131,8 +135,8 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
             </div>
             
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleAssignVM}>Assign</Button>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleAssignVM}>Atribuir</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -140,16 +144,16 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
       
       {userVMAccess.length === 0 ? (
         <div className="text-center py-4 bg-white/5 rounded-md">
-          <p className="text-muted-foreground text-sm">No VM access assigned</p>
+          <p className="text-muted-foreground text-sm">Nenhum acesso VM atribuído</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <Table>
+          <Table className="table-glass">
             <TableHeader>
               <TableRow>
-                <TableHead>Virtual Machine</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Máquina Virtual</TableHead>
+                <TableHead>Expira em</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -179,7 +183,7 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
                             handleUpdateAccess(access.vmId, input.value);
                           }}
                         >
-                          Update
+                          Atualizar
                         </Button>
                       </div>
                       <Button 
@@ -187,7 +191,7 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
                         variant="destructive"
                         onClick={() => handleRemoveAccess(access.vmId)}
                       >
-                        Remove
+                        Remover
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -204,33 +208,51 @@ const UserVMAccess = ({ user }: { user: UserType }) => {
 const Users = () => {
   const { users, updateUserRole, user: currentUser } = useAuth();
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleRoleChange = (userId: string, role: UserRole) => {
-    // Only founder can change anyone's role
-    // Admin can only set others to client
+    // Apenas fundador pode mudar o cargo de qualquer um
+    // Admin só pode definir outros como cliente
     if (!currentUser) return;
 
     if (currentUser.role === 'founder' || (currentUser.role === 'admin' && role === 'client')) {
       updateUserRole(userId, role);
+      toast.success(`Cargo de usuário atualizado para ${role === 'founder' ? 'Fundador' : role === 'admin' ? 'Admin' : 'Cliente'}`);
     } else {
-      toast.error("You don't have permission to assign this role");
+      toast.error("Você não tem permissão para atribuir este cargo");
     }
   };
 
-  // Check if current user is admin or founder
+  // Filtrar usuários pela pesquisa
+  const filteredUsers = users.filter(user => 
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Verificar se o usuário atual é admin ou founder
   if (currentUser?.role !== 'admin' && currentUser?.role !== 'founder') {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground">You don't have permission to view this page.</p>
+          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
+          <p className="text-muted-foreground">Você não tem permissão para visualizar esta página.</p>
         </div>
       </div>
     );
   }
 
+  // Função para mapear role para texto em Português
+  const getRoleName = (role: string) => {
+    switch(role) {
+      case 'founder': return 'Fundador';
+      case 'admin': return 'Administrador';
+      case 'client': return 'Cliente';
+      default: return role;
+    }
+  };
+
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden pt-24 pb-8 px-4">
+    <div className="relative min-h-screen w-full overflow-x-hidden pt-24 pb-20 px-4">
       {/* Background brushes */}
       <AnimatedBrush 
         color="rgba(255, 255, 255, 0.03)" 
@@ -246,17 +268,29 @@ const Users = () => {
       
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gradient">User Management</h1>
+          <h1 className="text-3xl font-bold text-gradient">Gerenciamento de Usuários</h1>
           <p className="text-muted-foreground">
-            View and manage user permissions and VM access
+            Visualize e gerencie permissões de usuários e acesso às VMs
           </p>
+          
+          <div className="flex items-center gap-2 w-full max-w-md mt-4 mx-auto">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuários..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
         
         <Separator className="mb-6" />
         
         <div className="space-y-4">
-          {users.map((user) => (
-            <Card key={user.id} className="glass-morphism">
+          {filteredUsers.map((user) => (
+            <Card key={user.id} className="card-improved">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-3">
                   <Avatar>
@@ -271,7 +305,7 @@ const Users = () => {
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                   <div className="space-y-2 text-sm">
                     <div className="text-muted-foreground">
-                      <span>User ID: </span>
+                      <span>ID do Usuário: </span>
                       <span className="font-mono text-foreground">{user.id}</span>
                     </div>
                     {user.email && (
@@ -281,43 +315,43 @@ const Users = () => {
                       </div>
                     )}
                     <div className="text-muted-foreground">
-                      <span>Current Role: </span>
-                      <span className="text-foreground capitalize">{user.role}</span>
+                      <span>Cargo Atual: </span>
+                      <span className="text-foreground capitalize">{getRoleName(user.role)}</span>
                     </div>
                   </div>
                   
                   <div className="sm:self-end">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm whitespace-nowrap">Set Role:</span>
+                      <span className="text-sm whitespace-nowrap">Definir Cargo:</span>
                       <Select 
                         defaultValue={user.role}
                         onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}
                         disabled={
-                          // Only founder can change roles, and admin can only set client role
+                          // Apenas fundador pode alterar cargos, e admin só pode definir cargo de cliente
                           (currentUser?.role !== 'founder' && (user.role !== 'client' || currentUser?.role !== 'admin')) || 
-                          // Nobody can change the founder's role
+                          // Ninguém pode alterar o cargo do fundador
                           user.id === '1345386650502565998'
                         }
                       >
                         <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Role" />
+                          <SelectValue placeholder="Cargo" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* Only founder can set admin and founder roles */}
+                          {/* Apenas fundador pode definir cargos de admin e founder */}
                           {currentUser?.role === 'founder' && (
                             <>
-                              <SelectItem value="founder">Founder</SelectItem>
+                              <SelectItem value="founder">Fundador</SelectItem>
                               <SelectItem value="admin">Admin</SelectItem>
                             </>
                           )}
-                          <SelectItem value="client">Client</SelectItem>
+                          <SelectItem value="client">Cliente</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                 </div>
                 
-                {/* Only show VM access management for clients */}
+                {/* Mostrar gerenciamento de acesso VM apenas para clientes */}
                 {user.role === 'client' && (
                   <UserVMAccess user={user} />
                 )}
@@ -327,9 +361,10 @@ const Users = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  className="rounded-full"
                   onClick={() => setSelectedUser(selectedUser?.id === user.id ? null : user)}
                 >
-                  {selectedUser?.id === user.id ? 'Hide Details' : 'Show Details'}
+                  {selectedUser?.id === user.id ? 'Ocultar Detalhes' : 'Mostrar Detalhes'}
                 </Button>
               </CardFooter>
             </Card>
