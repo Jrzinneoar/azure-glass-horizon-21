@@ -46,7 +46,7 @@ const FloatingNavbar = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 px-2 sm:px-0 w-[95%] sm:max-w-2xl mx-auto"
+      className="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 px-2 sm:px-0 w-full max-w-2xl mx-auto"
     >
       <motion.div 
         className={cn(

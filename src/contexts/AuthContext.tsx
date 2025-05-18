@@ -74,23 +74,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // In a real implementation, we would exchange the code for a token and then fetch user data
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Check for the special founder user ID
-      const discordId = "1345386650502565998"; // Hard-coding for demonstration
+      // Generate a random Discord ID for non-founder users
+      const randomId = Math.floor(Math.random() * 1000000000).toString();
       
-      // Simulate fetching user data from Discord
-      const founderUser: User = {
+      // Check for the special founder user ID
+      const isFounder = code.includes("founder") || randomId === "1345386650502565998";
+      const discordId = isFounder ? "1345386650502565998" : randomId;
+      
+      // Create user based on Discord ID
+      const userData: User = {
         id: discordId,
-        username: "Founder User",
-        role: 'founder',
-        email: "founder@example.com",
+        username: isFounder ? "Founder User" : `User ${randomId.substring(0, 5)}`,
+        role: isFounder ? 'founder' : 'client',
+        email: isFounder ? "founder@example.com" : `user${randomId.substring(0, 5)}@example.com`,
         discordId: discordId,
         // Using a random avatar to simulate getting the real Discord avatar
         avatarUrl: `https://i.pravatar.cc/150?u=${discordId}`, 
         createdAt: new Date(),
       };
       
-      setUser(founderUser);
-      toast.success(`Logged in as Founder`);
+      setUser(userData);
+      toast.success(`Logged in as ${isFounder ? 'Founder' : 'Client'}`);
       
     } catch (error) {
       console.error("Error logging in with Discord:", error);
