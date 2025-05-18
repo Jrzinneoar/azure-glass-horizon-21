@@ -36,6 +36,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    background: radial-gradient(ellipse at top, #1a1a2e, #121212);
   }
 
   html {
@@ -91,6 +92,27 @@
   .button-glow:active {
     @apply transform scale-95;
   }
+
+  /* New utility classes for the redesign */
+  .neon-border {
+    @apply border border-purple-500/30 shadow-[0_0_15px_rgba(149,128,255,0.5)];
+  }
+  
+  .purple-glow {
+    @apply shadow-[0_0_15px_rgba(149,128,255,0.5)];
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-105;
+  }
+  
+  .frosted-glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/20;
+  }
+  
+  .cyber-border {
+    @apply relative before:content-[''] before:absolute before:inset-0 before:p-[1px] before:bg-gradient-to-r before:from-purple-500/50 before:to-blue-500/50 before:rounded-[inherit] before:-z-10;
+  }
 }
 
 /* Fix for mobile layout */
@@ -133,7 +155,7 @@
 
 /* Card hover effect */
 .card-hover {
-  @apply transition-transform duration-300 hover:scale-[1.02];
+  @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_10px_40px_rgba(149,128,255,0.2)];
 }
 
 /* Status badge pulsing effect */
@@ -167,4 +189,54 @@
 /* Form group styling */
 .form-group {
   @apply space-y-2 mb-4;
+}
+
+/* New keyframes animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    opacity: 0.6;
+    box-shadow: 0 0 5px rgba(149, 128, 255, 0.3); 
+  }
+  50% { 
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(149, 128, 255, 0.7); 
+  }
+}
+
+@keyframes cyber-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(149, 128, 255, 0.3),
+                inset 0 0 5px rgba(149, 128, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(149, 128, 255, 0.7),
+                inset 0 0 10px rgba(149, 128, 255, 0.5);
+  }
+}
+
+/* Add new animation classes */
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-cyber-pulse {
+  animation: cyber-pulse 3s ease-in-out infinite;
 }

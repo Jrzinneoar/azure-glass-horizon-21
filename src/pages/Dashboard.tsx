@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AnimatedBrush from '@/components/AnimatedBrush';
 import { Separator } from '@/components/ui/separator';
@@ -8,12 +8,23 @@ import VMStatusFilter from '@/components/dashboard/VMStatusFilter';
 import VMSearchBar from '@/components/dashboard/VMSearchBar';
 import VMList from '@/components/dashboard/VMList';
 import NoAccessMessage from '@/components/dashboard/NoAccessMessage';
+import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const { user, virtualMachines, getUserVMs, getOwnerName } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  useEffect(() => {
+    // Simulate loading to show animations
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -55,11 +66,29 @@ const Dashboard = () => {
   // Check if user is admin or founder
   const isAdmin = user?.role === 'admin' || user?.role === 'founder';
   
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+        duration: 0.3
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+  
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden pt-24 pb-20 px-4">
-      {/* Background brushes */}
+      {/* Enhanced background brushes */}
       <AnimatedBrush 
-        color="rgba(255, 255, 255, 0.03)" 
+        color="rgba(149, 128, 255, 0.03)" 
         size={800} 
         className="top-[-200px] right-[-300px] z-0" 
       />
@@ -69,38 +98,69 @@ const Dashboard = () => {
         variant={2}
         className="bottom-[-100px] left-[-200px] z-0" 
       />
+      <AnimatedBrush 
+        color="rgba(149, 128, 255, 0.02)" 
+        size={700} 
+        className="top-[40%] left-[-30%] z-0" 
+      />
       
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="flex flex-col items-center text-center mb-8">
-          <h1 className="text-3xl font-bold text-gradient">Máquinas Virtuais</h1>
+      <motion.div 
+        className="max-w-7xl mx-auto relative z-10"
+        variants={containerVariants}
+        initial="hidden"
+        animate={isLoaded ? "visible" : "hidden"}
+      >
+        <motion.div 
+          className="flex flex-col items-center text-center mb-8"
+          variants={itemVariants}
+        >
+          <h1 className="text-3xl font-bold bg-gradient-to-br from-white via-white/90 to-purple-300 bg-clip-text text-transparent">
+            Máquinas Virtuais
+          </h1>
           <p className="text-muted-foreground">
             Monitore e gerencie suas máquinas virtuais Azure
           </p>
           
-          <VMSearchBar 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
-          />
-        </div>
+          <motion.div 
+            className="w-full max-w-md mt-4"
+            variants={itemVariants}
+          >
+            <VMSearchBar 
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
+            />
+          </motion.div>
+        </motion.div>
         
-        <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
-          <VMStatusFilter onValueChange={setActiveTab} />
-        </Tabs>
+        <motion.div variants={itemVariants}>
+          <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
+            <VMStatusFilter onValueChange={setActiveTab} />
+          </Tabs>
+        </motion.div>
         
-        <Separator className="mb-6" />
+        <motion.div variants={itemVariants}>
+          <Separator className="mb-6 bg-white/10" />
+        </motion.div>
         
         {user && user.role === 'client' && filteredVMs.length === 0 ? (
-          <NoAccessMessage />
+          <motion.div variants={itemVariants}>
+            <NoAccessMessage />
+          </motion.div>
         ) : filteredVMs.length === 0 ? (
-          <div className="text-center py-12">
+          <motion.div 
+            className="text-center py-12"
+            variants={itemVariants}
+          >
             <p className="text-muted-foreground">Nenhuma máquina virtual encontrada</p>
-          </div>
+          </motion.div>
         ) : (
-          <VMList vms={vmsWithOwners} isAdmin={isAdmin} />
+          <motion.div variants={itemVariants}>
+            <VMList vms={vmsWithOwners} isAdmin={isAdmin} />
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

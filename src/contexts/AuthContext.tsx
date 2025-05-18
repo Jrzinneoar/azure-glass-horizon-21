@@ -17,7 +17,6 @@ interface AuthContextValue {
   removeVMFromUser: (vmId: string, userId: string) => void;
   updateVMAccessPeriod: (vmId: string, userId: string, days: number) => void;
   getOwnerName: (ownerId?: string) => string | undefined;
-  // Adding this for AuthCallback.tsx
   loginWithDiscordCode: (code: string) => Promise<void>;
 }
 
@@ -54,27 +53,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading
   });
   
-  // Implement loginWithDiscordCode function
+  // Implement loginWithDiscordCode function with random role selection
   const loginWithDiscordCode = async (code: string) => {
     try {
       setIsLoading(true);
       console.log("Authenticating with Discord code:", code);
       
       // In a real app, you would call your backend API here
-      // For now, simulate a successful login with a random user (not just founder)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Randomly select a user based on the code hash to simulate different users logging in
+      // Modified to not automatically select founder role
+      // Use code hash to determine user and role
       const codeHash = code.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const userIndex = codeHash % users.length;
-      const selectedUser = users[userIndex];
       
-      if (selectedUser) {
+      // Find available users with different roles (excluding the first user who is founder)
+      const availableUsers = users.filter((_, index) => index > 0);
+      
+      if (availableUsers.length > 0) {
+        // Select a random non-founder user
+        const userIndex = codeHash % availableUsers.length;
+        const selectedUser = availableUsers[userIndex];
+        
         setUser({
           ...selectedUser,
           avatarUrl: selectedUser.avatarUrl || "https://github.com/shadcn.png"
         });
         console.log(`Logged in as ${selectedUser.username} (${selectedUser.role})`);
+      } else {
+        // Fallback to a client role if no other users available
+        // Create a temporary client user
+        const tempUser: User = {
+          id: `user-${Date.now()}`,
+          username: `client-${Date.now().toString().slice(-4)}`,
+          role: 'client',
+          email: `client${Date.now().toString().slice(-4)}@example.com`,
+          discordId: `discord-${Date.now()}`,
+          createdAt: new Date(),
+          avatarUrl: "https://github.com/shadcn.png",
+        };
+        
+        setUser(tempUser);
+        console.log(`Created temporary client user: ${tempUser.username}`);
       }
     } catch (error) {
       console.error("Error logging in with Discord:", error);
