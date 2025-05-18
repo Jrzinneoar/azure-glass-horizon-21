@@ -13,7 +13,6 @@ import {
   X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import UserRoleBadge from './users/UserRoleBadge';
 import { motion } from 'framer-motion';
 
 const FloatingNavbar = () => {
@@ -47,7 +46,7 @@ const FloatingNavbar = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-auto px-2 sm:px-0 max-w-[min(95%,600px)]"
+      className="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 px-2 sm:px-0 w-auto max-w-[95%] mx-auto"
     >
       <motion.div 
         className={cn(
@@ -181,11 +180,7 @@ const FloatingNavbar = () => {
               {expanded && (
                 <div className="hidden sm:block text-sm font-medium truncate max-w-[100px]">{user.username}</div>
               )}
-              {expanded && (
-                <div className="hidden sm:block">
-                  <UserRoleBadge role={user.role} />
-                </div>
-              )}
+              {/* Removed role badge display */}
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   variant="ghost" 
