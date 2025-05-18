@@ -21,13 +21,8 @@ const FloatingNavbar = () => {
     return location.pathname === path;
   };
   
-  // Determine if we're on a dashboard page to adjust navbar position
-  const isDashboardPage = location.pathname === '/dashboard' || 
-                          location.pathname === '/users' || 
-                          location.pathname === '/profile';
-  
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-auto px-2 sm:px-0 max-w-[95%] sm:max-w-[85%]">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-auto px-2 sm:px-0 max-w-[min(95%,600px)]">
       <div className="glass-morphism rounded-xl py-3 px-4 sm:px-8 flex items-center gap-3 sm:gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-xl">
         {/* Logo */}
         <div className="hidden md:block text-xl font-bold text-gradient pr-4 border-r border-white/10">

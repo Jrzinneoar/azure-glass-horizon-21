@@ -1,18 +1,19 @@
 
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Search } from 'lucide-react';
+import { Search, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import { VirtualMachine } from '@/contexts/types/auth.types';
 import { toast } from '@/components/ui/sonner';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
 import {
@@ -28,7 +29,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
-import { VirtualMachine } from '@/contexts/types/auth.types';
 
 interface VMAssignmentDialogProps {
   open: boolean;
@@ -37,94 +37,92 @@ interface VMAssignmentDialogProps {
   onAssignVM: (vmId: string) => void;
 }
 
-const VMAssignmentDialog: React.FC<VMAssignmentDialogProps> = ({ 
-  open, 
-  onOpenChange, 
-  availableVMs, 
-  onAssignVM 
+const VMAssignmentDialog: React.FC<VMAssignmentDialogProps> = ({
+  open,
+  onOpenChange,
+  availableVMs,
+  onAssignVM
 }) => {
-  const [selectedVM, setSelectedVM] = useState('');
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Filter VMs by search query
-  const filteredAvailableVMs = availableVMs.filter(vm => 
-    vm.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const [selectedVM, setSelectedVM] = useState<string>("");
+  const [expirationDate, setExpirationDate] = useState<Date | undefined>(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Filter VMs based on search query
+  const filteredVMs = availableVMs.filter(vm => 
+    vm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     vm.ip.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAssignVM = () => {
+  const handleAssign = () => {
     if (!selectedVM) {
-      toast.error('Por favor, selecione uma VM');
+      toast.error("Please select a VM to assign");
       return;
     }
-
+    
     onAssignVM(selectedVM);
     onOpenChange(false);
-    setSelectedVM('');
-    setSearchQuery('');
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-morphism">
         <DialogHeader>
-          <DialogTitle>Atribuir VM</DialogTitle>
+          <DialogTitle>Assign VM Access</DialogTitle>
           <DialogDescription>
-            Selecione uma máquina virtual e a data de expiração
+            Select a virtual machine to assign to this user
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <label htmlFor="vm-search">Buscar VM</label>
+        <div className="py-4 flex flex-col space-y-4">
+          <div>
+            <label className="text-sm mb-2 block">Search VM:</label>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                id="vm-search"
-                placeholder="Buscar por nome ou IP..."
+                placeholder="Search VMs by name or IP..."
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
-          
-          <div className="grid gap-2">
-            <label htmlFor="vm">Máquina Virtual</label>
+
+          <div>
+            <label className="text-sm mb-2 block">Select VM:</label>
             <Select value={selectedVM} onValueChange={setSelectedVM}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a VM" />
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a VM" />
               </SelectTrigger>
               <SelectContent>
-                {filteredAvailableVMs.map(vm => (
-                  <SelectItem key={vm.id} value={vm.id}>{vm.name} ({vm.ip})</SelectItem>
+                {filteredVMs.map((vm) => (
+                  <SelectItem key={vm.id} value={vm.id}>
+                    {vm.name} - {vm.ip} ({vm.type})
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          
-          <div className="grid gap-2">
-            <label htmlFor="expiry">Data de Expiração</label>
+
+          <div>
+            <label className="text-sm mb-2 block">Select access expiration date:</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  id="expiry"
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
+                    !expirationDate && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, 'PPP') : <span>Selecione a data</span>}
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {expirationDate ? format(expirationDate, 'PPP') : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <CalendarComponent
                   mode="single"
-                  selected={date}
-                  onSelect={setDate}
+                  selected={expirationDate}
+                  onSelect={setExpirationDate}
                   initialFocus
                   className="p-3 pointer-events-auto"
                   disabled={(date) => date < new Date()}
@@ -133,12 +131,12 @@ const VMAssignmentDialog: React.FC<VMAssignmentDialogProps> = ({
             </Popover>
           </div>
         </div>
-        
+
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={handleAssignVM}>Atribuir</Button>
+          <Button onClick={handleAssign}>Assign VM</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

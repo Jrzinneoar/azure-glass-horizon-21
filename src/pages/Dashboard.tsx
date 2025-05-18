@@ -26,7 +26,7 @@ const Dashboard = () => {
   const getAvailableVMs = () => {
     if (!user) return [];
     
-    // All roles (founder, admin, client) can see their VMs
+    // All users (founder, admin, client) can see their VMs
     return getUserVMs(user.id);
   };
   
