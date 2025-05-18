@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { VirtualMachine } from '@/contexts/types/auth.types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,12 +8,6 @@ import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const { virtualMachines, user } = useAuth();
-
-  // Function to handle VM assignment
-  const handleAssignVM = (vmId: string, date: Date) => {
-    console.log(`Assigning VM ${vmId} until ${date}`);
-    // Implement your assignment logic here
-  };
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden pt-24 pb-20 px-4">
@@ -48,7 +43,6 @@ const Dashboard = () => {
               type={vm.type}
               location={vm.location}
               ownerId={vm.ownerId}
-              onAssign={handleAssignVM}
             />
           ))}
         </div>
