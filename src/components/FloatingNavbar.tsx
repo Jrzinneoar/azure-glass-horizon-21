@@ -20,10 +20,10 @@ const FloatingNavbar = () => {
   };
   
   return (
-    <div className="navbar-float">
+    <div className="navbar-float flex flex-col items-center justify-center">
       {/* Logo */}
       <div className="flex items-center justify-center w-full">
-        <div className="text-xl font-bold text-gradient">Azure Monitor</div>
+        <div className="text-xl font-bold text-gradient text-center">Azure Monitor</div>
       </div>
       
       {/* Navigation links - only show if logged in */}
@@ -68,7 +68,7 @@ const FloatingNavbar = () => {
         </div>
       )}
       
-      {/* User menu */}
+      {/* User menu - centered */}
       <div className="flex items-center justify-center w-full mt-2 gap-2">
         {user ? (
           <>
@@ -76,8 +76,8 @@ const FloatingNavbar = () => {
               <AvatarImage src={user.avatarUrl} alt={user.username} />
               <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="hidden md:block text-sm font-medium truncate max-w-[100px]">{user.username}</div>
-            <div className="hidden md:block text-xs bg-secondary px-2 py-0.5 rounded-full">
+            <div className="hidden md:block text-sm font-medium truncate max-w-[100px] text-center">{user.username}</div>
+            <div className="hidden md:block text-xs bg-secondary px-2 py-0.5 rounded-full text-center">
               {user.role}
             </div>
             <Button 

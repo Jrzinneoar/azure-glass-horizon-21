@@ -9,60 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Search, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-// Mock data for Azure VMs
-const mockVMs = [
-  {
-    id: 'vm-1',
-    name: 'Production-Server',
-    status: 'running' as const,
-    ip: '192.168.1.10',
-    type: 'Standard_D2s_v3',
-    location: 'East US'
-  },
-  {
-    id: 'vm-2',
-    name: 'Dev-Environment',
-    status: 'stopped' as const,
-    ip: '192.168.1.11',
-    type: 'Standard_B2s',
-    location: 'West Europe'
-  },
-  {
-    id: 'vm-3',
-    name: 'Database-Server',
-    status: 'running' as const,
-    ip: '192.168.1.12',
-    type: 'Standard_E4_v3',
-    location: 'Southeast Asia'
-  },
-  {
-    id: 'vm-4',
-    name: 'Test-Server',
-    status: 'error' as const,
-    ip: '192.168.1.13',
-    type: 'Standard_B1s',
-    location: 'Central US'
-  },
-  {
-    id: 'vm-5',
-    name: 'Backup-Server',
-    status: 'stopped' as const,
-    ip: '192.168.1.14',
-    type: 'Standard_D4s_v3',
-    location: 'North Europe'
-  },
-  {
-    id: 'vm-6',
-    name: 'Analytics-VM',
-    status: 'running' as const,
-    ip: '192.168.1.15',
-    type: 'Standard_F8s_v2',
-    location: 'East Asia'
-  }
-];
-
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, virtualMachines, getUserVMs } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -74,7 +22,22 @@ const Dashboard = () => {
     setIsRefreshing(false);
   };
   
-  const filteredVMs = mockVMs.filter(vm => {
+  // Get VMs based on user role
+  const getAvailableVMs = () => {
+    if (!user) return [];
+    
+    // Admin and founder can see all VMs
+    if (user.role === 'admin' || user.role === 'founder') {
+      return virtualMachines;
+    }
+    
+    // Clients can only see VMs they have access to
+    return getUserVMs(user.id);
+  };
+  
+  const availableVMs = getAvailableVMs();
+  
+  const filteredVMs = availableVMs.filter(vm => {
     // Filter by search
     const matchesSearch = vm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           vm.ip.includes(searchQuery);
@@ -145,7 +108,14 @@ const Dashboard = () => {
         
         <Separator className="mb-6" />
         
-        {filteredVMs.length === 0 ? (
+        {user && user.role === 'client' && filteredVMs.length === 0 ? (
+          <div className="text-center py-12 glass-morphism p-8 rounded-lg mx-auto max-w-md">
+            <h3 className="text-lg font-semibold mb-2 text-gradient">No Access to Virtual Machines</h3>
+            <p className="text-muted-foreground">
+              You don't currently have access to any virtual machines. Please contact an administrator to request access.
+            </p>
+          </div>
+        ) : filteredVMs.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No virtual machines found</p>
           </div>

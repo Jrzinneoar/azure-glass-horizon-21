@@ -4,6 +4,12 @@ import { toast } from '@/components/ui/sonner';
 
 export type UserRole = 'founder' | 'admin' | 'client';
 
+export interface VMAccessPeriod {
+  vmId: string;
+  userId: string;
+  expiresAt: string; // ISO date string
+}
+
 export interface User {
   id: string;
   username: string;
@@ -12,6 +18,17 @@ export interface User {
   email?: string;
   role: UserRole;
   avatarUrl: string;
+  vmAccess?: VMAccessPeriod[];
+}
+
+export interface VirtualMachine {
+  id: string;
+  name: string;
+  status: 'running' | 'stopped' | 'error';
+  ip: string;
+  type: string;
+  location: string;
+  ownerId?: string; // ID of the assigned client, if any
 }
 
 interface AuthContextType {
@@ -21,6 +38,11 @@ interface AuthContextType {
   logout: () => void;
   updateUserRole: (userId: string, role: UserRole) => void;
   users: User[];
+  virtualMachines: VirtualMachine[];
+  getUserVMs: (userId: string) => VirtualMachine[];
+  assignVMToUser: (vmId: string, userId: string, durationDays: number) => void;
+  removeVMFromUser: (vmId: string, userId: string) => void;
+  updateVMAccessPeriod: (vmId: string, userId: string, durationDays: number) => void;
   loginWithDiscordCode: (code: string) => Promise<void>;
 }
 
@@ -31,6 +53,11 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   updateUserRole: () => {},
   users: [],
+  virtualMachines: [],
+  getUserVMs: () => [],
+  assignVMToUser: () => {},
+  removeVMFromUser: () => {},
+  updateVMAccessPeriod: () => {},
   loginWithDiscordCode: async () => {}
 });
 
@@ -47,21 +74,76 @@ const mockUsers: User[] = [
     username: 'founder_user',
     avatar: '1234',
     role: 'founder',
-    avatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png'
+    avatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png',
+    vmAccess: []
   },
   {
     id: '2345678901234567',
     username: 'admin_user',
     avatar: '5678',
     role: 'admin',
-    avatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png'
+    avatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png',
+    vmAccess: []
   },
   {
     id: '3456789012345678',
     username: 'client_user',
     avatar: '9012',
     role: 'client',
-    avatarUrl: 'https://cdn.discordapp.com/embed/avatars/2.png'
+    avatarUrl: 'https://cdn.discordapp.com/embed/avatars/2.png',
+    vmAccess: []
+  }
+];
+
+// Mock VMs data
+const mockVMs: VirtualMachine[] = [
+  {
+    id: 'vm-1',
+    name: 'Production-Server',
+    status: 'running',
+    ip: '192.168.1.10',
+    type: 'Standard_D2s_v3',
+    location: 'East US'
+  },
+  {
+    id: 'vm-2',
+    name: 'Dev-Environment',
+    status: 'stopped',
+    ip: '192.168.1.11',
+    type: 'Standard_B2s',
+    location: 'West Europe'
+  },
+  {
+    id: 'vm-3',
+    name: 'Database-Server',
+    status: 'running',
+    ip: '192.168.1.12',
+    type: 'Standard_E4_v3',
+    location: 'Southeast Asia'
+  },
+  {
+    id: 'vm-4',
+    name: 'Test-Server',
+    status: 'error',
+    ip: '192.168.1.13',
+    type: 'Standard_B1s',
+    location: 'Central US'
+  },
+  {
+    id: 'vm-5',
+    name: 'Backup-Server',
+    status: 'stopped',
+    ip: '192.168.1.14',
+    type: 'Standard_D4s_v3',
+    location: 'North Europe'
+  },
+  {
+    id: 'vm-6',
+    name: 'Analytics-VM',
+    status: 'running',
+    ip: '192.168.1.15',
+    type: 'Standard_F8s_v2',
+    location: 'East Asia'
   }
 ];
 
@@ -69,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>(mockUsers);
+  const [virtualMachines, setVirtualMachines] = useState<VirtualMachine[]>(mockVMs);
 
   useEffect(() => {
     // Check if we have a token in localStorage
@@ -94,6 +177,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     checkAuth();
+  }, []);
+
+  // Clean up expired VM access periods
+  useEffect(() => {
+    const cleanupExpiredVMAccess = () => {
+      const now = new Date().toISOString();
+      
+      setUsers(prevUsers => 
+        prevUsers.map(user => {
+          if (!user.vmAccess) return user;
+          
+          const updatedVMAccess = user.vmAccess.filter(
+            access => access.expiresAt > now
+          );
+          
+          return {
+            ...user,
+            vmAccess: updatedVMAccess
+          };
+        })
+      );
+    };
+    
+    // Run cleanup on load and every hour
+    cleanupExpiredVMAccess();
+    const interval = setInterval(cleanupExpiredVMAccess, 1000 * 60 * 60);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchUserFromDiscord = async (token: string): Promise<User | null> => {
@@ -126,16 +237,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role = 'founder';
       }
       
+      // Create avatarUrl
+      const avatarUrl = discordUser.avatar 
+        ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` 
+        : `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.discriminator || '0', 10) % 5}.png`;
+      
       // See if this user already exists in our users list
       const existingUser = users.find(u => u.id === discordUser.id);
       if (existingUser) {
         return existingUser; // Use existing role if the user exists
       }
-      
-      // Create avatarUrl
-      const avatarUrl = discordUser.avatar 
-        ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` 
-        : `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.discriminator || '0', 10) % 5}.png`;
       
       // Create new user object
       const newUser: User = {
@@ -145,7 +256,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatar: discordUser.avatar,
         email: discordUser.email,
         role: role,
-        avatarUrl: avatarUrl
+        avatarUrl: avatarUrl,
+        vmAccess: []
       };
       
       // Add new user to users list
@@ -226,6 +338,95 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.success(`User role updated to ${role}`);
   };
 
+  // VM access control functions
+  const getUserVMs = (userId: string): VirtualMachine[] => {
+    // Find the user
+    const targetUser = users.find(u => u.id === userId);
+    if (!targetUser || !targetUser.vmAccess || targetUser.vmAccess.length === 0) {
+      return [];
+    }
+
+    // Get current time
+    const now = new Date().toISOString();
+
+    // Filter VMs that the user has access to and haven't expired
+    const accessibleVMIds = targetUser.vmAccess
+      .filter(access => access.expiresAt > now)
+      .map(access => access.vmId);
+
+    return virtualMachines.filter(vm => accessibleVMIds.includes(vm.id));
+  };
+
+  const assignVMToUser = (vmId: string, userId: string, durationDays: number) => {
+    // Calculate expiration date
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + durationDays);
+
+    // Update the user's VM access
+    setUsers(prevUsers =>
+      prevUsers.map(u => {
+        if (u.id === userId) {
+          const newAccess: VMAccessPeriod = {
+            vmId,
+            userId,
+            expiresAt: expiresAt.toISOString()
+          };
+          
+          const vmAccess = u.vmAccess || [];
+          const filteredAccess = vmAccess.filter(access => access.vmId !== vmId);
+          
+          return {
+            ...u,
+            vmAccess: [...filteredAccess, newAccess]
+          };
+        }
+        return u;
+      })
+    );
+
+    toast.success(`VM access granted to user for ${durationDays} days`);
+  };
+
+  const removeVMFromUser = (vmId: string, userId: string) => {
+    setUsers(prevUsers =>
+      prevUsers.map(u => {
+        if (u.id === userId && u.vmAccess) {
+          return {
+            ...u,
+            vmAccess: u.vmAccess.filter(access => access.vmId !== vmId)
+          };
+        }
+        return u;
+      })
+    );
+
+    toast.info(`VM access removed from user`);
+  };
+
+  const updateVMAccessPeriod = (vmId: string, userId: string, durationDays: number) => {
+    // Calculate new expiration date
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + durationDays);
+
+    setUsers(prevUsers =>
+      prevUsers.map(u => {
+        if (u.id === userId && u.vmAccess) {
+          return {
+            ...u,
+            vmAccess: u.vmAccess.map(access => 
+              access.vmId === vmId
+                ? { ...access, expiresAt: expiresAt.toISOString() }
+                : access
+            )
+          };
+        }
+        return u;
+      })
+    );
+
+    toast.success(`VM access period updated to ${durationDays} days`);
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -234,6 +435,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout, 
       updateUserRole, 
       users,
+      virtualMachines,
+      getUserVMs,
+      assignVMToUser,
+      removeVMFromUser,
+      updateVMAccessPeriod,
       loginWithDiscordCode
     }}>
       {children}

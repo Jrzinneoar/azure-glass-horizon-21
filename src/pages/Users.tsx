@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
+import { useAuth, UserRole, User as UserType } from '@/contexts/AuthContext';
 import AnimatedBrush from '@/components/AnimatedBrush';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Select,
@@ -18,9 +19,191 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/sonner';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+
+// Format date for display
+const formatDate = (isoDate: string) => {
+  const date = new Date(isoDate);
+  return date.toLocaleString();
+};
+
+// Component to display and manage a user's VM access
+const UserVMAccess = ({ user }: { user: UserType }) => {
+  const { virtualMachines, assignVMToUser, removeVMFromUser, updateVMAccessPeriod } = useAuth();
+  const [selectedVM, setSelectedVM] = useState('');
+  const [durationDays, setDurationDays] = useState('30');
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleAssignVM = () => {
+    if (!selectedVM || !durationDays) {
+      toast.error('Please select a VM and duration');
+      return;
+    }
+
+    assignVMToUser(selectedVM, user.id, parseInt(durationDays));
+    setDialogOpen(false);
+    setSelectedVM('');
+    setDurationDays('30');
+  };
+
+  const handleRemoveAccess = (vmId: string) => {
+    removeVMFromUser(vmId, user.id);
+  };
+
+  const handleUpdateAccess = (vmId: string, days: string) => {
+    if (!days || parseInt(days) <= 0) {
+      toast.error('Please enter a valid number of days');
+      return;
+    }
+
+    updateVMAccessPeriod(vmId, user.id, parseInt(days));
+  };
+
+  // Get VMs the user has access to
+  const userVMAccess = user.vmAccess || [];
+  
+  // Get available VMs for assignment (exclude already assigned ones)
+  const assignedVMIds = userVMAccess.map(access => access.vmId);
+  const availableVMs = virtualMachines.filter(vm => !assignedVMIds.includes(vm.id));
+
+  return (
+    <div className="space-y-4 mt-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-md font-semibold">Virtual Machine Access</h3>
+        
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="default" disabled={availableVMs.length === 0}>
+              Assign VM
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="glass-morphism">
+            <DialogHeader>
+              <DialogTitle>Assign VM to {user.username}</DialogTitle>
+              <DialogDescription>
+                Select a virtual machine and access duration
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label htmlFor="vm">Virtual Machine</label>
+                <Select value={selectedVM} onValueChange={setSelectedVM}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select VM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableVMs.map(vm => (
+                      <SelectItem key={vm.id} value={vm.id}>{vm.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid gap-2">
+                <label htmlFor="duration">Access Duration (days)</label>
+                <Input
+                  id="duration"
+                  type="number"
+                  value={durationDays}
+                  onChange={e => setDurationDays(e.target.value)}
+                  min="1"
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleAssignVM}>Assign</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      
+      {userVMAccess.length === 0 ? (
+        <div className="text-center py-4 bg-white/5 rounded-md">
+          <p className="text-muted-foreground text-sm">No VM access assigned</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Virtual Machine</TableHead>
+                <TableHead>Expires</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {userVMAccess.map(access => {
+                const vm = virtualMachines.find(vm => vm.id === access.vmId);
+                if (!vm) return null;
+                
+                return (
+                  <TableRow key={access.vmId}>
+                    <TableCell>{vm.name}</TableCell>
+                    <TableCell>{formatDate(access.expiresAt)}</TableCell>
+                    <TableCell className="flex items-center gap-2">
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          className="w-16 h-8"
+                          defaultValue="30"
+                          min="1"
+                          id={`days-${access.vmId}`}
+                        />
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="ml-2"
+                          onClick={() => {
+                            const input = document.getElementById(`days-${access.vmId}`) as HTMLInputElement;
+                            handleUpdateAccess(access.vmId, input.value);
+                          }}
+                        >
+                          Update
+                        </Button>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleRemoveAccess(access.vmId)}
+                      >
+                        Remove
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Users = () => {
   const { users, updateUserRole, user: currentUser } = useAuth();
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
 
   const handleRoleChange = (userId: string, role: UserRole) => {
     // Only founder can change anyone's role
@@ -62,10 +245,10 @@ const Users = () => {
       />
       
       <div className="max-w-4xl mx-auto relative z-10">
-        <div className="mb-8">
+        <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gradient">User Management</h1>
           <p className="text-muted-foreground">
-            View and manage user permissions
+            View and manage user permissions and VM access
           </p>
         </div>
         
@@ -133,7 +316,22 @@ const Users = () => {
                     </div>
                   </div>
                 </div>
+                
+                {/* Only show VM access management for clients */}
+                {user.role === 'client' && (
+                  <UserVMAccess user={user} />
+                )}
               </CardContent>
+              
+              <CardFooter className="flex justify-center border-t border-white/10 pt-4">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedUser(selectedUser?.id === user.id ? null : user)}
+                >
+                  {selectedUser?.id === user.id ? 'Hide Details' : 'Show Details'}
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>

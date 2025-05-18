@@ -104,5 +104,41 @@
 /* Standard navbar for desktop */
 .navbar-float {
   @apply fixed top-6 left-1/2 -translate-x-1/2 glass-morphism rounded-2xl
-         py-3 px-6 z-50 shadow-lg min-w-[280px] max-w-[600px];
+         py-3 px-6 z-50 shadow-lg min-w-[280px] max-w-[600px] flex flex-col items-center;
+}
+
+/* Table adjustments for glass-morphism theme */
+.table-glass {
+  @apply glass-morphism;
+}
+
+.table-glass th {
+  @apply border-b border-white/10 bg-white/5 text-white/70;
+}
+
+.table-glass td {
+  @apply border-b border-white/5;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-transform duration-300 hover:scale-[1.02];
+}
+
+/* Status badge pulsing effect */
+.status-badge-running {
+  @apply bg-green-500/20 border-green-500/50 text-green-400 animate-pulse-glow;
+}
+
+.status-badge-stopped {
+  @apply bg-gray-500/20 border-gray-500/50 text-gray-400;
+}
+
+.status-badge-error {
+  @apply bg-red-500/20 border-red-500/50 text-red-400;
+}
+
+/* Input focus state */
+.input-focus {
+  @apply focus:ring-2 focus:ring-white/20 focus:border-white/30;
 }
