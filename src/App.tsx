@@ -8,7 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import Users from "@/pages/Users";
-import Settings from "@/pages/Settings";
+import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 import AuthCallback from "@/pages/AuthCallback";
 import AuthLayout from "@/layouts/AuthLayout";
@@ -38,9 +38,9 @@ const App = () => (
               </AuthLayout>
             } />
             
-            <Route path="/settings" element={
-              <AuthLayout requiredRole="founder">
-                <Settings />
+            <Route path="/profile" element={
+              <AuthLayout>
+                <Profile />
               </AuthLayout>
             } />
             

@@ -3,12 +3,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 import { Loader2 } from 'lucide-react';
-import { useAuth, User } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const { users } = useAuth();
+  const { loginWithDiscordCode } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -23,12 +23,12 @@ const AuthCallback = () => {
       }
       
       try {
-        // In a real app, we would exchange the code for a token
-        // For now, we'll simulate authentication success
-        await simulateTokenExchange(code);
+        // Process the authentication with the received code
+        await loginWithDiscordCode(code);
         
         // Redirect to dashboard after successful login
         navigate('/dashboard');
+        toast.success('Successfully logged in!');
       } catch (err) {
         console.error('Auth error:', err);
         setError('Authentication failed');
@@ -38,24 +38,7 @@ const AuthCallback = () => {
     };
     
     handleCallback();
-  }, [navigate]);
-  
-  // Simulate token exchange - in a real app this would call Discord's API
-  const simulateTokenExchange = async (code: string): Promise<void> => {
-    // This simulates exchanging the code for a token and user data
-    // In a real app, we'd make API calls to Discord
-    
-    // For demo purposes, let's randomly pick a user from our mock data
-    // In a real app, the Discord API would return the actual user data
-    const randomIndex = Math.floor(Math.random() % users.length);
-    const mockUser = users[randomIndex] as User;
-    
-    // Store a fake token with the user ID for our auth context to use
-    localStorage.setItem('discord_token', `${mockUser.id}_fake_token`);
-    
-    // Simulate network delay
-    return new Promise((resolve) => setTimeout(resolve, 1500));
-  };
+  }, [navigate, loginWithDiscordCode]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center">

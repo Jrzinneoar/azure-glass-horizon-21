@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   LogOut,
-  Settings,
+  User,
   Users,
   Monitor
 } from 'lucide-react';
@@ -20,7 +20,7 @@ const FloatingNavbar = () => {
   };
   
   return (
-    <div className="navbar-float flex items-center gap-4">
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 glass-morphism rounded-full py-2 px-6 z-50 flex items-center gap-4 shadow-lg">
       {/* Logo */}
       <div className="text-xl font-bold text-gradient">Azure Monitor</div>
       
@@ -34,7 +34,7 @@ const FloatingNavbar = () => {
               className="button-glow flex gap-2 items-center"
             >
               <Monitor size={16} />
-              <span>VMs</span>
+              <span className="sm:inline hidden">VMs</span>
             </Button>
           </Link>
           
@@ -47,24 +47,22 @@ const FloatingNavbar = () => {
                 className="button-glow flex gap-2 items-center"
               >
                 <Users size={16} />
-                <span>Users</span>
+                <span className="sm:inline hidden">Users</span>
               </Button>
             </Link>
           )}
           
-          {/* Only founders can see settings */}
-          {user.role === 'founder' && (
-            <Link to="/settings">
-              <Button 
-                variant={isActive('/settings') ? "secondary" : "ghost"} 
-                size="sm" 
-                className="button-glow flex gap-2 items-center"
-              >
-                <Settings size={16} />
-                <span>Settings</span>
-              </Button>
-            </Link>
-          )}
+          {/* Profile page for all users */}
+          <Link to="/profile">
+            <Button 
+              variant={isActive('/profile') ? "secondary" : "ghost"} 
+              size="sm" 
+              className="button-glow flex gap-2 items-center"
+            >
+              <User size={16} />
+              <span className="sm:inline hidden">Profile</span>
+            </Button>
+          </Link>
         </div>
       )}
       
@@ -76,7 +74,7 @@ const FloatingNavbar = () => {
               <AvatarImage src={user.avatarUrl} alt={user.username} />
               <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="hidden md:block text-sm font-medium">{user.username}</div>
+            <div className="hidden md:block text-sm font-medium truncate max-w-[100px]">{user.username}</div>
             <div className="hidden md:block text-xs bg-secondary px-2 py-0.5 rounded-full">
               {user.role}
             </div>
@@ -90,7 +88,7 @@ const FloatingNavbar = () => {
             </Button>
           </>
         ) : (
-          <Button variant="default" size="sm" className="button-glow">
+          <Button variant="default" size="sm" className="button-glow" onClick={() => window.location.href = '/'}>
             Login with Discord
           </Button>
         )}
