@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
-import { Power, Info } from 'lucide-react';
+import { Power, Info, HardDrive, Cpu, Server, Database } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -44,48 +44,76 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
     toast.success(`Virtual machine ${name} ${newStatus === 'running' ? 'started' : 'stopped'} successfully`);
     setIsLoading(false);
   };
+
+  // Determine status color
+  const getStatusColor = () => {
+    switch(status) {
+      case 'running': return 'bg-green-500/20 border-green-500/50 text-green-400';
+      case 'stopped': return 'bg-gray-500/20 border-gray-500/50 text-gray-400';
+      case 'error': return 'bg-red-500/20 border-red-500/50 text-red-400';
+      default: return '';
+    }
+  };
   
   return (
-    <Card className="glass-morphism overflow-hidden group">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-gradient text-lg">{name}</CardTitle>
-          <Badge 
-            variant={status === 'running' ? 'default' : status === 'stopped' ? 'secondary' : 'destructive'}
-            className={`${status === 'running' ? 'animate-pulse-glow' : ''}`}
-          >
-            {status}
-          </Badge>
+    <Card className="glass-morphism overflow-hidden group relative border-white/10 hover:border-white/20 transition-all duration-300">
+      {/* Decorative corner accent */}
+      <div className="absolute right-0 top-0 h-24 w-24 overflow-hidden">
+        <div className="w-32 h-32 rotate-45 bg-gradient-to-r from-white/5 to-white/10 -translate-x-1/2 -translate-y-1/2"></div>
+      </div>
+      
+      {/* Status indicator line at the top */}
+      <div 
+        className={`h-1 w-full ${status === 'running' ? 'bg-green-500/50' : status === 'stopped' ? 'bg-gray-500/30' : 'bg-red-500/50'}`}
+      />
+      
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Server size={16} className="text-white/50" />
+          <CardTitle className="text-gradient text-lg font-bold">{name}</CardTitle>
         </div>
+        <Badge 
+          className={`${getStatusColor()} px-3 py-1 ${status === 'running' ? 'animate-pulse-glow' : ''}`}
+        >
+          {status}
+        </Badge>
       </CardHeader>
       
-      <CardContent className="pb-4">
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between text-muted-foreground">
-            <span>IP Address</span>
-            <span className="font-mono">{ip}</span>
+      <CardContent className="pb-2">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-2 rounded-md bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2">
+              <HardDrive size={14} className="text-white/50" />
+              <span className="text-sm text-white/80">IP Address</span>
+            </div>
+            <span className="font-mono text-sm text-white/90">{ip}</span>
           </div>
-          <div className="flex justify-between text-muted-foreground">
-            <span>Type</span>
-            <span>{type}</span>
+          
+          <div className="flex items-center justify-between p-2 rounded-md bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2">
+              <Cpu size={14} className="text-white/50" />
+              <span className="text-sm text-white/80">Type</span>
+            </div>
+            <span className="text-sm text-white/90">{type}</span>
           </div>
-          <div className="flex justify-between text-muted-foreground">
-            <span>Location</span>
-            <span>{location}</span>
+          
+          <div className="flex items-center justify-between p-2 rounded-md bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2">
+              <Database size={14} className="text-white/50" />
+              <span className="text-sm text-white/80">Location</span>
+            </div>
+            <span className="text-sm text-white/90">{location}</span>
           </div>
         </div>
       </CardContent>
       
-      <div className="absolute right-0 top-0 h-20 w-20 group-hover:opacity-100 opacity-0 transition-opacity">
-        <div className="w-28 h-28 rotate-45 bg-gradient-to-r from-white/5 to-white/10 -translate-x-1/2 -translate-y-1/2"></div>
-      </div>
-      
-      <CardFooter className="pt-0 flex justify-between">
+      <CardFooter className="pt-3 flex justify-between border-t border-white/10 mt-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="sm" className="button-glow">
                 <Info size={16} />
+                <span className="ml-2">Details</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>

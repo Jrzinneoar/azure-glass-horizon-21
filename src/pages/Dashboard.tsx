@@ -104,16 +104,14 @@ const Dashboard = () => {
       />
       
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gradient">Virtual Machines</h1>
-            <p className="text-muted-foreground">
-              Monitor and manage your Azure virtual machines
-            </p>
-          </div>
+        <div className="flex flex-col items-center text-center mb-8">
+          <h1 className="text-3xl font-bold text-gradient">Virtual Machines</h1>
+          <p className="text-muted-foreground">
+            Monitor and manage your Azure virtual machines
+          </p>
           
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
+          <div className="flex items-center gap-2 w-full max-w-md mt-4">
+            <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search VMs by name or IP..."
@@ -135,12 +133,14 @@ const Dashboard = () => {
         </div>
         
         <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="all">All VMs</TabsTrigger>
-            <TabsTrigger value="running">Running</TabsTrigger>
-            <TabsTrigger value="stopped">Stopped</TabsTrigger>
-            <TabsTrigger value="error">Error</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center">
+            <TabsList>
+              <TabsTrigger value="all">All VMs</TabsTrigger>
+              <TabsTrigger value="running">Running</TabsTrigger>
+              <TabsTrigger value="stopped">Stopped</TabsTrigger>
+              <TabsTrigger value="error">Error</TabsTrigger>
+            </TabsList>
+          </div>
         </Tabs>
         
         <Separator className="mb-6" />

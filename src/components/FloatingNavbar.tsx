@@ -20,13 +20,15 @@ const FloatingNavbar = () => {
   };
   
   return (
-    <div className="fixed top-6 left-1/2 -translate-x-1/2 glass-morphism rounded-full py-2 px-6 z-50 flex items-center gap-4 shadow-lg">
+    <div className="navbar-float">
       {/* Logo */}
-      <div className="text-xl font-bold text-gradient">Azure Monitor</div>
+      <div className="flex items-center justify-center w-full">
+        <div className="text-xl font-bold text-gradient">Azure Monitor</div>
+      </div>
       
       {/* Navigation links - only show if logged in */}
       {user && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2 mt-2">
           <Link to="/dashboard">
             <Button 
               variant={isActive('/dashboard') ? "secondary" : "ghost"} 
@@ -67,7 +69,7 @@ const FloatingNavbar = () => {
       )}
       
       {/* User menu */}
-      <div className="flex items-center ml-auto gap-2">
+      <div className="flex items-center justify-center w-full mt-2 gap-2">
         {user ? (
           <>
             <Avatar className="h-8 w-8 border border-white/20">
