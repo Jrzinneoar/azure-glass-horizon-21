@@ -46,7 +46,7 @@ export const useAuthActions = ({
   }, [setUser]);
 
   const updateUserRole = useCallback((userId: string, role: UserRole) => {
-    setUsers(prevUsers => 
+    setUsers((prevUsers: User[]) => 
       prevUsers.map(u => 
         u.id === userId ? { ...u, role } : u
       )
@@ -91,7 +91,7 @@ export const useAuthActions = ({
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + durationDays);
     
-    setUsers(prevUsers => 
+    setUsers((prevUsers: User[]) => 
       prevUsers.map(u => {
         if (u.id === userId) {
           const vmAccess = u.vmAccess || [];
@@ -110,7 +110,7 @@ export const useAuthActions = ({
       })
     );
 
-    setVirtualMachines(prevVMs => 
+    setVirtualMachines((prevVMs: VirtualMachine[]) => 
       prevVMs.map(vm => 
         vm.id === vmId ? { ...vm, ownerId: userId } : vm
       )
@@ -118,7 +118,7 @@ export const useAuthActions = ({
   }, [setUsers, setVirtualMachines]);
 
   const removeVMFromUser = useCallback((vmId: string, userId: string) => {
-    setUsers(prevUsers => 
+    setUsers((prevUsers: User[]) => 
       prevUsers.map(u => {
         if (u.id === userId && u.vmAccess) {
           return {
@@ -130,7 +130,7 @@ export const useAuthActions = ({
       })
     );
 
-    setVirtualMachines(prevVMs => 
+    setVirtualMachines((prevVMs: VirtualMachine[]) => 
       prevVMs.map(vm => 
         vm.id === vmId ? { ...vm, ownerId: undefined } : vm
       )
@@ -141,7 +141,7 @@ export const useAuthActions = ({
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + days);
     
-    setUsers(prevUsers => 
+    setUsers((prevUsers: User[]) => 
       prevUsers.map(u => {
         if (u.id === userId && u.vmAccess) {
           return {
