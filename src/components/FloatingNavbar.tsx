@@ -10,6 +10,7 @@ import {
   Users,
   Monitor
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const FloatingNavbar = () => {
   const { user, logout } = useAuth();
@@ -24,84 +25,110 @@ const FloatingNavbar = () => {
                           location.pathname === '/users' || 
                           location.pathname === '/profile';
   
-  const navbarPosition = isDashboardPage ? 'navbar-float-bottom' : 'navbar-float';
-  
   return (
-    <div className={`${navbarPosition} flex flex-col items-center justify-center`}>
-      {/* Logo */}
-      <div className="flex items-center justify-center w-full mb-2">
-        <div className="text-xl font-bold text-gradient text-center">Monitor Azure</div>
-      </div>
-      
-      {/* Navigation links - only show if logged in */}
-      {user && (
-        <div className="flex items-center justify-center gap-2">
-          <Link to="/dashboard">
-            <Button 
-              variant={isActive('/dashboard') ? "secondary" : "ghost"} 
-              size="sm"
-              className="button-glow flex gap-2 items-center rounded-full"
-            >
-              <Monitor size={16} />
-              <span className="sm:inline hidden">VMs</span>
-            </Button>
-          </Link>
-          
-          {/* Admins and founders can see users */}
-          {(user.role === 'admin' || user.role === 'founder') && (
-            <Link to="/users">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-auto">
+      <div className="glass-morphism rounded-xl py-3 px-8 flex items-center gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-white/20 backdrop-blur-xl">
+        {/* Logo */}
+        <div className="hidden md:block text-xl font-bold text-gradient pr-4 border-r border-white/10">
+          Monitor Azure
+        </div>
+        <div className="md:hidden text-xl font-bold text-gradient">MA</div>
+        
+        {/* Navigation links - only show if logged in */}
+        {user && (
+          <div className="flex items-center gap-2">
+            <Link to="/dashboard">
               <Button 
-                variant={isActive('/users') ? "secondary" : "ghost"} 
-                size="sm" 
-                className="button-glow flex gap-2 items-center rounded-full"
+                variant={isActive('/dashboard') ? "secondary" : "ghost"} 
+                size="sm"
+                className={cn(
+                  "button-glow flex gap-2 items-center rounded-full px-4",
+                  isActive('/dashboard') ? "bg-primary/20" : ""
+                )}
               >
-                <Users size={16} />
-                <span className="sm:inline hidden">Usuários</span>
+                <Monitor size={16} />
+                <span className="sm:inline hidden">VMs</span>
               </Button>
             </Link>
-          )}
-          
-          {/* Profile page for all users */}
-          <Link to="/profile">
-            <Button 
-              variant={isActive('/profile') ? "secondary" : "ghost"} 
-              size="sm" 
-              className="button-glow flex gap-2 items-center rounded-full"
-            >
-              <User size={16} />
-              <span className="sm:inline hidden">Perfil</span>
-            </Button>
-          </Link>
-        </div>
-      )}
-      
-      {/* User menu - centered */}
-      <div className="flex items-center justify-center w-full mt-2 gap-2">
-        {user ? (
-          <>
-            <Avatar className="h-8 w-8 border border-white/20">
-              <AvatarImage src={user.avatarUrl} alt={user.username} />
-              <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="hidden md:block text-sm font-medium truncate max-w-[100px] text-center">{user.username}</div>
-            <div className="hidden md:block text-xs bg-secondary px-2 py-0.5 rounded-full text-center">
-              {user.role === 'founder' ? 'Fundador' : user.role === 'admin' ? 'Admin' : 'Cliente'}
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="button-glow text-destructive rounded-full" 
-              onClick={logout}
-            >
-              <LogOut size={16} />
-            </Button>
-          </>
-        ) : (
-          <Button variant="default" size="sm" className="button-glow rounded-full" onClick={() => window.location.href = '/'}>
-            Entrar com Discord
-          </Button>
+            
+            {/* Admins and founders can see users */}
+            {(user.role === 'admin' || user.role === 'founder') && (
+              <Link to="/users">
+                <Button 
+                  variant={isActive('/users') ? "secondary" : "ghost"} 
+                  size="sm" 
+                  className={cn(
+                    "button-glow flex gap-2 items-center rounded-full px-4",
+                    isActive('/users') ? "bg-primary/20" : ""
+                  )}
+                >
+                  <Users size={16} />
+                  <span className="sm:inline hidden">Usuários</span>
+                </Button>
+              </Link>
+            )}
+            
+            {/* Profile page for all users */}
+            <Link to="/profile">
+              <Button 
+                variant={isActive('/profile') ? "secondary" : "ghost"} 
+                size="sm" 
+                className={cn(
+                  "button-glow flex gap-2 items-center rounded-full px-4",
+                  isActive('/profile') ? "bg-primary/20" : ""
+                )}
+              >
+                <User size={16} />
+                <span className="sm:inline hidden">Perfil</span>
+              </Button>
+            </Link>
+          </div>
         )}
+        
+        {/* Divider */}
+        <div className="h-8 w-px bg-white/10"></div>
+        
+        {/* User menu */}
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <Avatar className="h-8 w-8 border border-white/20">
+                <AvatarImage src={user.avatarUrl} alt={user.username} />
+                <AvatarFallback>{user.username.substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="hidden md:block text-sm font-medium truncate max-w-[100px]">{user.username}</div>
+              <div className="hidden md:flex items-center justify-center text-xs bg-primary/20 px-2 py-0.5 rounded-full">
+                {user.role === 'founder' ? 'Fundador' : user.role === 'admin' ? 'Admin' : 'Cliente'}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="button-glow text-destructive rounded-full" 
+                onClick={logout}
+              >
+                <LogOut size={16} />
+              </Button>
+            </>
+          ) : (
+            <Button variant="default" size="sm" className="button-glow rounded-full" onClick={() => window.location.href = '/'}>
+              Entrar com Discord
+            </Button>
+          )}
+        </div>
+        
+        {/* Decorative elements for futuristic look */}
+        <div className="absolute inset-0 -z-10 overflow-hidden rounded-xl">
+          <div className="absolute top-0 left-0 w-full h-full opacity-30">
+            <div className="absolute top-0 left-0 w-5 h-5 rounded-br-lg border-b border-r border-white/20"></div>
+            <div className="absolute top-0 right-0 w-5 h-5 rounded-bl-lg border-b border-l border-white/20"></div>
+            <div className="absolute bottom-0 left-0 w-5 h-5 rounded-tr-lg border-t border-r border-white/20"></div>
+            <div className="absolute bottom-0 right-0 w-5 h-5 rounded-tl-lg border-t border-l border-white/20"></div>
+          </div>
+        </div>
       </div>
+      
+      {/* Subtle glow effect */}
+      <div className="absolute -z-20 inset-0 blur-2xl bg-primary/5 rounded-full"></div>
     </div>
   );
 };

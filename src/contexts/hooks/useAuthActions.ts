@@ -52,13 +52,22 @@ export const useAuthActions = ({
       )
     );
   }, [setUsers]);
+  
+  const getOwnerName = useCallback((ownerId?: string) => {
+    if (!ownerId) return undefined;
+    const owner = users.find(u => u.id === ownerId);
+    return owner ? owner.username : undefined;
+  }, [users]);
 
   const getUserVMs = useCallback((userId: string) => {
     if (!user) return [];
     
     // Se for admin ou founder, retorna todas as VMs
     if (user.role === 'admin' || user.role === 'founder') {
-      return virtualMachines;
+      return virtualMachines.map(vm => ({
+        ...vm,
+        ownerName: getOwnerName(vm.ownerId)
+      }));
     }
     
     // Para clientes, verificar as VMs com acesso não expirado
@@ -72,8 +81,11 @@ export const useAuthActions = ({
     });
     
     const vmIds = validVMAccess.map(access => access.vmId);
-    return virtualMachines.filter(vm => vmIds.includes(vm.id));
-  }, [user, users, virtualMachines]);
+    return virtualMachines.filter(vm => vmIds.includes(vm.id)).map(vm => ({
+      ...vm,
+      ownerName: getOwnerName(vm.ownerId)
+    }));
+  }, [user, users, virtualMachines, getOwnerName]);
 
   const assignVMToUser = useCallback((vmId: string, userId: string, durationDays: number) => {
     const expiryDate = new Date();
@@ -153,6 +165,7 @@ export const useAuthActions = ({
     getUserVMs,
     assignVMToUser,
     removeVMFromUser,
-    updateVMAccessPeriod
+    updateVMAccessPeriod,
+    getOwnerName
   };
 };

@@ -4,13 +4,28 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
-import { Power, Info, HardDrive, Cpu, Server, Database } from 'lucide-react';
+import { Power, Calendar, HardDrive, Cpu, Server, Database, User } from 'lucide-react';
+import { format } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from '@/lib/utils';
 
 interface VirtualMachineProps {
   id: string;
@@ -19,6 +34,9 @@ interface VirtualMachineProps {
   ip: string;
   type: string;
   location: string;
+  ownerId?: string;
+  ownerName?: string;
+  onAssign?: (vmId: string, date: Date) => void;
 }
 
 const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
@@ -27,10 +45,15 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
   status: initialStatus,
   ip,
   type,
-  location
+  location,
+  ownerId,
+  ownerName,
+  onAssign
 }) => {
   const [status, setStatus] = useState(initialStatus);
   const [isLoading, setIsLoading] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
   const handlePowerAction = async () => {
     setIsLoading(true);
@@ -43,6 +66,14 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
     
     toast.success(`Virtual machine ${name} ${newStatus === 'running' ? 'started' : 'stopped'} successfully`);
     setIsLoading(false);
+  };
+
+  const handleAssign = () => {
+    if (selectedDate && onAssign) {
+      onAssign(id, selectedDate);
+      setAssignDialogOpen(false);
+      toast.success(`VM ${name} has been assigned until ${format(selectedDate, 'PPP')}`);
+    }
   };
 
   // Determine status color
@@ -104,23 +135,64 @@ const VirtualMachineCard: React.FC<VirtualMachineProps> = ({
             </div>
             <span className="text-sm text-white/90">{location}</span>
           </div>
+
+          <div className="flex items-center justify-between p-2 rounded-md bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2">
+              <User size={14} className="text-white/50" />
+              <span className="text-sm text-white/80">Owner</span>
+            </div>
+            <span className="text-sm text-white/90">{ownerName || "Unassigned"}</span>
+          </div>
         </div>
       </CardContent>
       
       <CardFooter className="pt-3 flex justify-between border-t border-white/10 mt-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="button-glow">
-                <Info size={16} />
-                <span className="ml-2">Details</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>View details for {name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="button-glow">
+              <Calendar size={16} />
+              <span className="ml-2">Assign VM</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="glass-morphism">
+            <DialogHeader>
+              <DialogTitle>Assign {name} to a User</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 flex flex-col items-center">
+              <div className="mb-4">
+                <label className="text-sm mb-2 block">Select access expiration date:</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                      disabled={(date) => date < new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleAssign}>Assign</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         
         <Button 
           variant={status === 'running' ? 'destructive' : 'default'}
