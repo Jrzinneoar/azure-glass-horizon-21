@@ -13,7 +13,8 @@ export interface User {
   avatarUrl: string;
   role: UserRole;
   vmAccess?: VMAccess[];
-  discordId?: string; // Add discordId property
+  discordId?: string;
+  createdAt?: Date;
 }
 
 export interface VirtualMachine {

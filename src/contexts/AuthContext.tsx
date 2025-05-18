@@ -40,14 +40,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   } = useAuthState();
 
   const {
-    login,
-    logout,
     updateUserRole,
     getUserVMs,
     assignVMToUser,
     removeVMFromUser,
     updateVMAccessPeriod,
-    getOwnerName
+    getOwnerName,
+    logout
   } = useAuthActions({
     user,
     setUser,
@@ -86,7 +85,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'founder',
           email: `founder_${discordId}@example.com`,
           discordId: discordId,
-          createdAt: new Date(),
           avatarUrl: "https://github.com/shadcn.png",
         };
         

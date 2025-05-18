@@ -15,6 +15,7 @@ const Index = () => {
     }
   }, [user, navigate]);
   
+  // Always show login page for unauthenticated users
   return <Login />;
 };
 
